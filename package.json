@@ -1,0 +1,21 @@
+{
+  "name": "erc8004-agent-receipts",
+  "version": "1.0.0",
+  "description": "Agent Work Receipts — on-chain proof of agent work linked to ERC-8004 identity on Base",
+  "type": "module",
+  "scripts": {
+    "compile": "node scripts/compile.js",
+    "deploy": "tsx src/deploy.ts",
+    "agent": "tsx src/agent/receipt-agent.ts",
+    "verify": "tsx src/verify.ts"
+  },
+  "dependencies": {
+    "viem": "^2.21.0"
+  },
+  "devDependencies": {
+    "@types/node": "^25.5.0",
+    "solc": "^0.8.28",
+    "tsx": "^4.19.0",
+    "typescript": "^5.6.0"
+  }
+}

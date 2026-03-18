@@ -1,0 +1,5 @@
+[project]
+id = "erc8004-agent-receipts"
+profile = "standard"
+budget = "$20/day"
+verify = "npm test"
