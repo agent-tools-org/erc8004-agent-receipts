@@ -17,18 +17,37 @@ ERC-8004 establishes on-chain agent identity on Base. This project extends that 
 ## Architecture
 
 ```
-Agent (ERC-8004 identity on Base)
-  │
-  ├── Performs task → produces deliverable
-  ├── Hashes deliverable → bytes32
-  └── Calls WorkReceipt.submitReceipt() on Base Sepolia
-        │
-        └── On-chain receipt: agent + hash + description + timestamp + requester
-
-Verifier
-  └── Calls WorkReceipt.verifyReceipt(id, expectedHash)
-        └── Returns true/false — trustless verification
+┌─────────────────────────────┐
+│         AI Agent            │
+│   (ERC-8004 Identity)       │
+│                             │
+│  1. Performs task            │
+│  2. Hashes deliverable      │
+│  3. Signs & submits receipt  │
+└────────────┬────────────────┘
+             │  submitReceipt(hash, desc, requester)
+             ▼
+┌─────────────────────────────┐
+│   WorkReceipt Contract      │
+│     (Base Sepolia)          │
+│                             │
+│  • Stores receipts on-chain │
+│  • Links agent identity     │
+│    to deliverable hash      │
+│  • Emits ReceiptSubmitted   │
+└────────────┬────────────────┘
+             │  verifyReceipt(id, expectedHash)
+             ▼
+┌─────────────────────────────┐
+│    On-chain Verification    │
+│                             │
+│  • Anyone can verify        │
+│  • Trustless hash matching  │
+│  • Returns true/false       │
+└─────────────────────────────┘
 ```
+
+The flow is simple: **Agent → Work Receipt Contract → On-chain Verification**. An agent with an ERC-8004 identity performs work, submits a receipt linking its identity to the deliverable hash, and anyone can verify that receipt on-chain without trusting the agent.
 
 ## Quick Start
 
@@ -86,16 +105,88 @@ Key functions:
 - `getAgentReceipts(agent)` — all receipts for an agent
 - `verifyReceipt(id, expectedHash)` — verify deliverable matches
 
-## The ERC-8004 Connection
+## ERC-8004 Agent Identity
 
-ERC-8004 provides on-chain agent identity on Base. Our work receipts build a **verifiable track record** for that identity:
+ERC-8004 is a standard for establishing **on-chain agent identity** on Base. Rather than treating AI agents as anonymous callers, ERC-8004 gives each agent a persistent, verifiable identity tied to a blockchain address. This identity becomes the foundation for accountability and trust.
 
-- **Identity** → ERC-8004 agent address on Base
-- **Accountability** → Every task has an immutable receipt
-- **Trust** → Anyone can verify an agent's claimed work output
-- **Reputation** → An agent's receipt history demonstrates reliability
+Our work receipts extend that identity with a **verifiable track record**:
 
-This creates a trust layer where agents can prove their work, and requesters can verify it — all on-chain, all trustless.
+- **Identity** → Each agent has an ERC-8004 address on Base, serving as its persistent on-chain identity
+- **Accountability** → Every task the agent performs produces an immutable receipt linked to that identity
+- **Trust** → Anyone can verify an agent's claimed work output by checking the deliverable hash on-chain
+- **Reputation** → An agent's receipt history demonstrates reliability — the more verified receipts, the more trustworthy the agent
+
+This creates a trust layer where agents can prove their work, requesters can verify it, and the entire history is transparent — all on-chain, all trustless.
+
+## How It Works
+
+### Receipt Submission
+
+1. An agent performs a task (e.g., data analysis, code generation, report creation)
+2. The agent computes a `keccak256` hash of the deliverable content
+3. The agent calls `submitReceipt(deliverableHash, taskDescription, requester)` on the WorkReceipt contract
+4. The contract stores the receipt with the agent's address, hash, description, timestamp, and requester
+5. A `ReceiptSubmitted` event is emitted for off-chain indexing
+
+### Verification Flow
+
+1. A verifier obtains the deliverable and the receipt ID
+2. The verifier hashes the deliverable with `keccak256` to get the expected hash
+3. The verifier calls `verifyReceipt(receiptId, expectedHash)` on the contract
+4. The contract compares the stored hash with the expected hash and returns `true` or `false`
+5. No trust required — the verification is purely cryptographic and on-chain
+
+### Querying Receipts
+
+- `getReceipt(id)` — Returns full receipt details (agent, hash, description, timestamp, requester)
+- `getAgentReceipts(agent)` — Returns all receipt IDs for a given agent address
+- `nextReceiptId()` — Returns the total number of receipts submitted
+
+## Deployment
+
+### Prerequisites
+
+- Node.js 18+
+- A wallet with Base Sepolia ETH ([faucet](https://www.coinbase.com/faucets/base-ethereum-goerli-faucet))
+
+### Step-by-step
+
+```bash
+# 1. Install dependencies
+npm install
+
+# 2. Compile the contract
+npm run compile
+
+# 3. Set up environment variables
+cp .env.example .env
+# Edit .env and add your PRIVATE_KEY (needs Base Sepolia ETH)
+
+# 4. Run the demo to verify connectivity
+npm run demo
+# This connects to Base Sepolia, shows your wallet address/balance,
+# and confirms the contract is compiled and ready
+
+# 5. Deploy to Base Sepolia
+npm run deploy
+# Deploys the WorkReceipt contract and saves address to proof/deploy.json
+
+# 6. Submit a work receipt
+npm run agent
+# The agent performs a task, hashes the output, and submits a receipt on-chain
+
+# 7. Verify a receipt
+npm run verify -- 0 <deliverableHash>
+# Verifies that receipt ID 0 matches the given hash
+```
+
+### Environment Variables
+
+| Variable | Description |
+|----------|-------------|
+| `PRIVATE_KEY` | Private key for the deployer/agent wallet |
+| `CONTRACT_ADDRESS` | (Optional) Override contract address instead of reading from proof/deploy.json |
+| `RPC_URL` | (Optional) Custom RPC endpoint, defaults to `https://sepolia.base.org` |
 
 ## Tech Stack
 

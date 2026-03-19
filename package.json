@@ -8,6 +8,7 @@
     "deploy": "tsx src/deploy.ts",
     "agent": "tsx src/agent/receipt-agent.ts",
     "verify": "tsx src/verify.ts",
+    "demo": "npx tsx --env-file=.env scripts/demo.ts",
     "test": "vitest run"
   },
   "dependencies": {
