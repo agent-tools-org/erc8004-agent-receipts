@@ -9,6 +9,7 @@
     "agent": "tsx src/agent/receipt-agent.ts",
     "verify": "tsx src/verify.ts",
     "demo": "npx tsx --env-file=.env scripts/demo.ts",
+    "gasless-deploy": "npx tsx --env-file=.env scripts/gasless-deploy.ts",
     "test": "vitest run"
   },
   "dependencies": {

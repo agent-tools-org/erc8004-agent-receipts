@@ -20,6 +20,7 @@ const input = {
         "*": ["abi", "evm.bytecode.object"],
       },
     },
+    evmVersion: "paris",
     optimizer: { enabled: true, runs: 200 },
   },
 };
