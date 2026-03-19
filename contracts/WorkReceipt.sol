@@ -87,14 +87,15 @@ contract WorkReceipt {
     }
 
     /// @notice Verify a receipt matches an expected deliverable hash
+    /// @dev Emits ReceiptVerified so verification is recorded on-chain
     /// @param receiptId The receipt to verify
     /// @param expectedHash The expected deliverable hash
     /// @return matched Whether the hashes match
     function verifyReceipt(uint256 receiptId, bytes32 expectedHash)
         external
-        view
         returns (bool matched)
     {
         matched = receipts[receiptId].deliverableHash == expectedHash;
+        emit ReceiptVerified(receiptId, msg.sender, matched);
     }
 }
